@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "ls -R src/pages && vite build"
     "lint": "eslint .",
     "preview": "vite preview"
   },
