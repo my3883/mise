@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "ls -R src && vite build"
+    "build": "ls -R src && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
