@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import RecipesPage from './pages/RecipesPage';
-import MealPlannerPage from './pages/MealPlannerPage';
-import ShoppingListPage from './pages/ShoppingListPage';
+import RecipesPage from './Pages/RecipesPage';
+import MealPlannerPage from './Pages/MealPlannerPage';
+import ShoppingListPage from './Pages/ShoppingListPage';
 import { MealPlanProvider } from './context/MealPlanContext';
 import './App.css';
 
