@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { recipes } from '../recipes';
 import { useMealPlan } from '../context/MealPlanContext';
 
 export default function MealPlannerPage() {
   const { mealPlan, setMealPlan } = useMealPlan();
+  const [showWeekends, setShowWeekends] = useState(false);
 
   const assignToDay = (week, day, recipe) => {
     setMealPlan((prev) => ({
@@ -15,7 +16,7 @@ export default function MealPlannerPage() {
     }));
   };
 
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const getDateLabel = (offset) => {
     const date = new Date();
     date.setDate(date.getDate() + offset);
@@ -23,11 +24,22 @@ export default function MealPlannerPage() {
   };
 
   const sortedRecipes = [...recipes].sort((a, b) => a.name.localeCompare(b.name));
+  const visibleDays = showWeekends ? days : days.slice(0, 5);
 
   return (
     <div>
-      <h3 style={{ marginTop: '1rem' }}>This Week</h3>
-      {days.map((day, index) => (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+        <label htmlFor="weekendToggle">Show weekends</label>
+        <input
+          id="weekendToggle"
+          type="checkbox"
+          checked={showWeekends}
+          onChange={() => setShowWeekends(prev => !prev)}
+        />
+      </div>
+
+      <h3 style={{ marginTop: '0.5rem' }}>This Week</h3>
+      {visibleDays.map((day, index) => (
         <div key={`current-${day}`} style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <span style={{ minWidth: '100px', fontSize: '1rem' }}>{day}, {getDateLabel(index)}</span>
           <select
@@ -43,8 +55,8 @@ export default function MealPlannerPage() {
         </div>
       ))}
 
-      <h3 style={{ marginTop: '2rem' }}>Next Week</h3>
-      {days.map((day, index) => (
+      <h3 style={{ marginTop: '1.5rem' }}>Next Week</h3>
+      {visibleDays.map((day, index) => (
         <div key={`next-${day}`} style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <span style={{ minWidth: '100px', fontSize: '1rem' }}>{day}, {getDateLabel(index + 7)}</span>
           <select
