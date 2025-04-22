@@ -1,104 +1,114 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
 import RecipesPage from './Pages/RecipesPage';
 import MealPlannerPage from './Pages/MealPlannerPage';
 import ShoppingListPage from './Pages/ShoppingListPage';
-import { MealPlanProvider } from './context/MealPlanContext';
+import SousChefPage from './Pages/SousChefPage';
 import './App.css';
+import logo from './assets/mise-logo.png';
+import { auth, provider } from './firebase';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { MealPlanProvider } from './context/MealPlanContext';
 
-function Navigation() {
-  const location = useLocation();
-  return (
-    <nav style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '1.5rem', whiteSpace: 'nowrap', overflowX: 'auto' }}>
-      <Link
-        to="/"
-        style={{
-          padding: '0.3rem 0.75rem',
-          borderRadius: '9999px',
-          backgroundColor: location.pathname === '/' ? '#577590' : 'transparent',
-          border: '2px solid #577590',
-          color: location.pathname === '/' ? 'white' : '#577590',
-          fontWeight: 'bold',
-          textDecoration: 'none',
-          fontSize: '0.9rem',
-          lineHeight: '1.2',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        Recipes
-      </Link>
-      <Link
-        to="/meal-planner"
-        style={{
-          padding: '0.3rem 0.75rem',
-          borderRadius: '9999px',
-          backgroundColor: location.pathname === '/meal-planner' ? '#90be6d' : 'transparent',
-          border: '2px solid #90be6d',
-          color: location.pathname === '/meal-planner' ? 'white' : '#90be6d',
-          fontWeight: 'bold',
-          textDecoration: 'none',
-          fontSize: '0.9rem',
-          lineHeight: '1.2',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        Meal Planner
-      </Link>
-      <Link
-        to="/shopping-list"
-        style={{
-          padding: '0.3rem 0.75rem',
-          borderRadius: '9999px',
-          backgroundColor: location.pathname === '/shopping-list' ? '#f3722c' : 'transparent',
-          border: '2px solid #f3722c',
-          color: location.pathname === '/shopping-list' ? 'white' : '#f3722c',
-          fontWeight: 'bold',
-          textDecoration: 'none',
-          fontSize: '0.9rem',
-          lineHeight: '1.2',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        Shopping List
-      </Link>
-    </nav>
-  );
-}
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [showSignOut, setShowSignOut] = useState(false);
 
-function App() {
+  useEffect(() => {
+    onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+  }, []);
+
+  const handleSignIn = () => {
+    signInWithPopup(auth, provider)
+      .then((result) => setUser(result.user))
+      .catch((error) => console.error(error));
+  };
+
+  const handleSignOut = () => {
+    signOut(auth);
+    setShowSignOut(false);
+  };
+
+  const navItems = [
+    { path: '/', label: 'Recipes', color: '#ff7b11' },
+    { path: '/meal-planner', label: 'Meal Plan', color: '#ee562a' },
+    { path: '/shopping-list', label: 'Shopping List', color: '#369a4f' },
+    { path: '/sous-chef', label: 'Sous Chef', color: '#179497' }
+  ];
+
   return (
     <MealPlanProvider>
       <Router>
-        <div
-          className="App"
-          style={{
-            paddingTop: '5.5rem',
-            maxWidth: '600px',
-            margin: '0 auto',
-            fontFamily: 'Arial, sans-serif',
-            backgroundColor: '#fdfdfd',
-            color: '#333',
-            position: 'relative'
-          }}>
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, backgroundColor: '#fdfdfd', zIndex: 1000, paddingTop: '0.75rem', paddingBottom: '0.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-  <img src="/logo.png" alt="Mise logo" style={{ height: '48px', display: 'block', marginLeft: 'auto', marginRight: 'auto', marginBottom: '0.75rem' }} />
-          <Navigation />
-</div>
+        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem' }}>
+            <img src={logo} alt="Mise logo" style={{ height: '40px' }} />
+            <div>
+              {user ? (
+                <div style={{ position: 'relative' }}>
+                  <span
+                    onClick={() => setShowSignOut((prev) => !prev)}
+                    style={{ cursor: 'pointer', marginRight: '1rem' }}
+                  >
+                    👨‍🍳 {user.displayName}
+                  </span>
+                  {showSignOut && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: 0,
+                        top: '1.5rem',
+                        backgroundColor: 'white',
+                        border: '1px solid #ccc',
+                        borderRadius: '4px',
+                        padding: '0.5rem',
+                        zIndex: 1000
+                      }}
+                    >
+                      <button onClick={handleSignOut}>Sign Out</button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button onClick={handleSignIn}>Sign in with Google</button>
+              )}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+            {navItems.map(({ path, label, color }) => (
+              <NavLink
+                key={path}
+                to={path}
+                style={(navData) => {
+                  const isActive = navData.isActive;
+                  return {
+                    border: `2px solid ${color}`,
+                    backgroundColor: isActive ? color : 'transparent',
+                    color: isActive ? 'white' : color,
+                    padding: '0.4rem 0.75rem',
+                    borderRadius: '20px',
+                    fontWeight: '500',
+                    textDecoration: 'none',
+                    fontSize: '0.95rem',
+                    textAlign: 'center'
+                  };
+                }}
+              >
+                {label}
+              </NavLink>
+            ))}
+          </div>
+
           <Routes>
             <Route path="/" element={<RecipesPage />} />
             <Route path="/meal-planner" element={<MealPlannerPage />} />
             <Route path="/shopping-list" element={<ShoppingListPage />} />
+            <Route path="/sous-chef" element={<SousChefPage />} />
           </Routes>
         </div>
       </Router>
     </MealPlanProvider>
   );
 }
-
-export default App;
