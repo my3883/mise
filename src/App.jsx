@@ -34,7 +34,7 @@ export default function App() {
   const navItems = [
     { path: '/', label: 'Recipes', color: '#ff7b11' },
     { path: '/meal-planner', label: 'Meal Plan', color: '#ee562a' },
-    { path: '/shopping-list', label: 'Shopping List', color: '#369a4f' },
+    { path: '/shopping-list', label: 'Shopping', color: '#369a4f' },
     { path: '/sous-chef', label: 'Sous Chef', color: '#179497' }
   ];
 
