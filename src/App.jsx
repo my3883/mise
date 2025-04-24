@@ -41,7 +41,7 @@ export default function App() {
   return (
     <MealPlanProvider>
       <Router>
-        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '1rem' }}>
+        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '1rem 0.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem' }}>
             <img src={logo} alt="Mise logo" style={{ height: '40px' }} />
             <div>
