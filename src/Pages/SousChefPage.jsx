@@ -16,6 +16,7 @@ export default function SousChefPage() {
   const [link, setLink] = useState('');
   const [parsedImport, setParsedImport] = useState(null);
   const [rouletteRecipe, setRouletteRecipe] = useState(null);
+  const [customPrompt, setCustomPrompt] = useState('');
   const [customRecipeObj, setCustomRecipeObj] = useState(null);
   const [status, setStatus] = useState('');
   const [rouletteStatus, setRouletteStatus] = useState('');
@@ -84,7 +85,6 @@ export default function SousChefPage() {
   const handleRoulette = async () => {
     const user = auth.currentUser;
     if (!user) { setRouletteStatus('Sign in to generate.'); return; }
-    // ensure all selections made
     const { style, cuisine, mainIngredient, chef } = pickerValues;
     if (!style || !cuisine || !mainIngredient || !chef) {
       setRouletteStatus('Please select all fields.');
@@ -162,7 +162,7 @@ export default function SousChefPage() {
               >
                 <option value="">-- select style --</option>
                 {options.style.map(s=><option key={s} value={s}>{s}</option>)}
-              </select>
+              ></select>
               &nbsp;
               <select
                 value={pickerValues.cuisine}
@@ -171,7 +171,7 @@ export default function SousChefPage() {
               >
                 <option value="">-- select cuisine --</option>
                 {options.cuisine.map(c=><option key={c} value={c}>{c}</option>)}
-              </select>
+              ></select>
               &nbsp;recipe using&nbsp;
               <select
                 value={pickerValues.mainIngredient}
@@ -180,7 +180,7 @@ export default function SousChefPage() {
               >
                 <option value="">-- select ingredient --</option>
                 {options.mainIngredient.map(m=><option key={m} value={m}>{m}</option>)}
-              </select>
+              ></select>
               &nbsp;in the style of&nbsp;
               <select
                 value={pickerValues.chef}
@@ -189,7 +189,7 @@ export default function SousChefPage() {
               >
                 <option value="">-- select chef --</option>
                 {options.chef.map(ch=><option key={ch} value={ch}>{ch}</option>)}
-              </select>
+              ></select>
               .
             </p>
             <button onClick={handleRoulette} style={editBtnStyle}>Generate Recipe</button>
@@ -204,7 +204,7 @@ export default function SousChefPage() {
         <button onClick={()=>toggleSection('custom')} style={headingStyle}>{arrow(expandedSection==='custom')} Generate Custom Recipe</button>
         {expandedSection==='custom'&&(
           <div style={{marginTop:'0.5rem'}}>
-            <textarea value={customPrompt} onChange={e=>setCustomPrompt(e.target.value)} placeholder="Your prompt..." rows={3} style={{width:'100%',padding:'0.5rem'}}/>
+            <textarea value={customPrompt} onChange={e=>setCustomPrompt(e.target.value)} placeholder="Your prompt..." rows={3} style={{width:'100%',padding:'0.5rem'}}></textarea>
             <button onClick={handleCustomPrompt} style={editBtnStyle}>Generate Recipe</button>
             {customStatus && <p>{customStatus}</p>}
             {customRecipeObj && renderRecipeCard(customRecipeObj, addCustomRecipe, false)}
