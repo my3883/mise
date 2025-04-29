@@ -1,9 +1,11 @@
-#root {
+##root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  padding: 1rem;     /* smaller gutter on desktop */
+  padding-left: 0.5rem;  /* tighter gutters on mobile */
+  padding-right: 0.5rem;
 }
+
 
 .logo {
   height: 6em;
@@ -39,4 +41,17 @@
 
 .read-the-docs {
   color: #888;
+}
+
+html {
+  color-scheme: light !important;
+  background-color: white !important;
+  color: black !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    /* Stay light even when the user’s system prefers dark */
+    color-scheme: light !important;
+  }
 }
