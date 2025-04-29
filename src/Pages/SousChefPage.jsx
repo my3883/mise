@@ -79,16 +79,27 @@ export default function SousChefPage() {
   const handleRoulette = async () => {
     const user = auth.currentUser;
     const { style, cuisine, mainIngredient, chef } = pickerValues;
-    if (!user) return setRouletteStatus('Please sign in.');
-    if (!style||!cuisine||!mainIngredient||!chef) return setRouletteStatus('Select all fields.');
+    if (!user) {
+      setRouletteStatus('Please sign in.');
+      return;
+    }
+    if (!style || !cuisine || !mainIngredient || !chef) {
+      setRouletteStatus('Select all fields.');
+      return;
+    }
     setRouletteStatus('Generating recipe...');
     try {
       const { data } = await axios.post('/.netlify/functions/chatgptProxy', {
-        prompt: `Create a ${style} ${cuisine} recipe using ${mainIngredient} in the style of ${chef}. Include concise step-by-step instructions. Respond only in JSON: { name, instructions, ingredients: { Protein: [], Starch: [], Produce: [], Pantry: [] } }. Do NOT include any link field or URL.`
+        prompt: `Create a ${style} ${cuisine} recipe using ${mainIngredient} in the style of ${chef}. Include concise step-by-step instructions. Return only JSON: { name, instructions, ingredients: { Protein: [], Starch: [], Produce: [], Pantry: [] } }. Do NOT include any link field or URL.`
       });
-      const json = JSON.parse(data.reply.trim());
-      delete json.link; // ensure no link
-      setRouletteRecipe(json);
+      const parsed = JSON.parse(data.reply.trim());
+      // Only keep expected fields
+      const clean = {
+        name: parsed.name,
+        instructions: parsed.instructions,
+        ingredients: parsed.ingredients
+      };
+      setRouletteRecipe(clean);
       setRouletteStatus('Recipe generated.');
     } catch {
       setRouletteStatus('Error generating.');
