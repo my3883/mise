@@ -1,4 +1,3 @@
-// src/Pages/ShoppingListPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useMealPlan } from '../context/MealPlanContext';
 import { auth } from '../firebase';
@@ -24,19 +23,21 @@ export default function ShoppingListPage() {
 
   useEffect(() => {
     const generateList = (plan) => {
-      const selected = Object.values(plan)
-        .map(name => recipes.find(r => r.name === name))
+      const selected = Object.entries(plan)
+        .filter(([day]) => day !== 'Saturday' && day !== 'Sunday')
+        .map(([, name]) => recipes.find(r => r.name === name))
         .filter(Boolean);
 
       const categories = { Produce: [], Protein: [], Starch: [], Pantry: [] };
 
       selected.forEach(recipe => {
         Object.entries(recipe.ingredients || {}).forEach(([category, items]) => {
-          if (!categories[category]) categories[category] = [];
+          const key = category.toLowerCase() === 'veggies' ? 'Produce' : category;
+          if (!categories[key]) categories[key] = [];
           items.forEach(item => {
             const fullItem = `${item} (${recipe.name})`;
-            if (!categories[category].includes(fullItem)) {
-              categories[category].push(fullItem);
+            if (!categories[key].includes(fullItem)) {
+              categories[key].push(fullItem);
             }
           });
         });
@@ -63,9 +64,9 @@ export default function ShoppingListPage() {
     items.length === 0 ? null : (
       <div style={{ marginBottom: '1rem' }} key={title}>
         <strong>{title}</strong>
-        <ul style={{ paddingLeft: '0.5rem', listStyle: 'none' }}>
-          {items.map((item) => (
-            <li key={item} style={{ textAlign: 'left' }}>
+        <ul style={{ paddingLeft: '0.5rem', listStyle: 'none', textAlign: 'left' }}>
+          {items.map(item => (
+            <li key={item}>
               <label style={{ textDecoration: checkedItems.has(item) ? 'line-through' : 'none' }}>
                 <input
                   type="checkbox"
@@ -82,16 +83,27 @@ export default function ShoppingListPage() {
     )
   );
 
+  const hasCurrent = Object.values(shoppingList.current).some(arr => arr.length > 0);
+  const hasNext = Object.values(shoppingList.next).some(arr => arr.length > 0);
+
   return (
-    <div style={{ paddingTop: '3rem' }}>
-      <h3>This Week</h3>
-      {Object.entries(shoppingList.current).map(([category, items]) =>
-        renderCategory(items, category)
+    <div style={{ paddingTop: '3rem', textAlign: 'left' }}>
+      {hasCurrent && (
+        <>
+          <h3>This Week</h3>
+          {Object.entries(shoppingList.current).map(([category, items]) =>
+            renderCategory(items, category)
+          )}
+        </>
       )}
 
-      <h3 style={{ marginTop: '2rem' }}>Next Week</h3>
-      {Object.entries(shoppingList.next).map(([category, items]) =>
-        renderCategory(items, category)
+      {hasNext && (
+        <>
+          <h3 style={{ marginTop: '2rem' }}>Next Week</h3>
+          {Object.entries(shoppingList.next).map(([category, items]) =>
+            renderCategory(items, category)
+          )}
+        </>
       )}
     </div>
   );

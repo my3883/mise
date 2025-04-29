@@ -82,7 +82,7 @@ export default function RecipesPage() {
 
   // Styles
   const listStyle = { listStyle: 'none', padding: 0, margin: '1rem 0' };
-  const itemStyle = { marginBottom: '0.5rem', background: '#ecf0f1', padding: '0.5rem', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
+  const itemStyle = { marginBottom: '0.5rem', background: '#ecf0f1', padding: '0.5rem', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'left' };
   const detailStyle = { backgroundColor: '#ecf0f1', borderRadius: '12px', padding: '1rem', position: 'relative', maxWidth: '600px', margin: '1rem auto' };
   const inputStyle = { width: '100%', padding: '0.5rem', marginBottom: '0.5rem', fontSize: '1rem', border: '1px solid #ccc', borderRadius: '4px' };
 
@@ -92,14 +92,14 @@ export default function RecipesPage() {
         <ul style={listStyle}>
           {recipes.map(recipe => (
             <li key={recipe.id} style={itemStyle}>
-              <strong>{recipe.name}</strong>
+              <strong style={{ fontSize: '0.8rem' }}>{recipe.name}</strong>
               <button onClick={() => setSelectedRecipe(recipe)} style={editBtnStyle}>View</button>
             </li>
           ))}
         </ul>
       ) : (
         <div style={detailStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'left', marginBottom: '1rem' }}>
             {isEditing ? (
               <input
                 style={{ ...inputStyle, marginBottom: 0 }}
