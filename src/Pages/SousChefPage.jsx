@@ -6,7 +6,7 @@ import axios from 'axios';
 const arrow = (expanded) => expanded ? '▼' : '▶';
 
 const options = {
-  mainIngredient: ['chicken','beef','pork','salmon','white fish','shrimp','tofu','mushroom','beans','veggies'],
+  mainIngredient: ['chicken','beef','pork','salmon','white fish','shrimp','tofu','mushrooms','beans','veggies'],
   cuisine:        ['American','Chinese','Indian','Italian','Japanese','Mexican','Middle Eastern','Southeast Asian'],
   style:          ['light','rich','spicy','bold','zesty','funky','umami-forward'],
   chef:           ['Alice Waters','Judy Rogers','Julia Child','Kenji Alt-Lopez','Mario Batali','Michael Solomonov','Morimoto','Ottolenghi','Rick Bayless','Thomas Keller']
@@ -70,7 +70,7 @@ export default function SousChefPage() {
     setStatus('Parsing recipe...');
     try {
       const parsed = await callChatGPT(
-        `Extract the name, simplified cooking instructions, and ingredients categories from this URL: ${link}. Respond only in JSON with fields name, instructions, ingredients (Protein, Starch, Produce, Pantry), and link.`
+        `Extract the name, simplified cooking instructions, and ingredients categories from this URL: ${link}. Respond with a list of ingridents divided into the following categories (Protein, Produce, Starch, Pantry) then include a brief set of instructions follwed by a link to the recipe.`
       );
       setParsedImport(parsed);
       setStatus('Recipe parsed.');
@@ -102,7 +102,7 @@ export default function SousChefPage() {
 
     try {
       const parsed = await callChatGPT(
-        `Create a ${style} ${cuisine} recipe using ${mainIngredient} in the style of ${chef}. Include concise step-by-step instructions. Respond only in JSON with fields name, instructions, and ingredients (Protein, Starch, Produce, Pantry). Do NOT include any link.`
+        `Create a ${style} ${cuisine} recipe using ${mainIngredient} in the style of ${chef}. Explain why the recipe matches the request then include a list of ingredients divided into the following categories (Protein, Produce, Starch, Pantry) then include a brief set of instructions.`
       );
       setRouletteRecipe(parsed);
       setRouletteStatus('Recipe generated.');
@@ -133,7 +133,7 @@ export default function SousChefPage() {
 
     try {
       const parsed = await callChatGPT(
-        `Generate a custom recipe: ${customPrompt}. Provide concise step-by-step instructions. Respond only in JSON with fields name, instructions, and ingredients (Protein, Starch, Produce, Pantry). Do NOT include any link.`
+        `Generate a custom recipe: ${customPrompt}. Explain why the recipe matches the request then include a list of ingredients divided into the following categories (Protein, Produce, Starch, Pantry) then include a brief set of instructions.`
       );
       setCustomRecipeObj(parsed);
       setCustomStatus('Recipe generated.');
