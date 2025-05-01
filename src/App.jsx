@@ -125,7 +125,7 @@ export default function App() {
           </div>
 
           {/* Route container with padding to compensate for sticky header */}
-          <div style={{ paddingTop: '80px' }}>
+          <div style={{ paddingTop: '80px', flexGrow: 1 }}>
             <Routes>
               <Route path="/" element={<RecipesPage />} />
               <Route path="/meal-planner" element={<MealPlannerPage />} />
