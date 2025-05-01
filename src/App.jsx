@@ -9,7 +9,6 @@ import logo from './assets/mise-logo.png';
 import { auth, provider } from './firebase';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { MealPlanProvider } from './context/MealPlanContext';
-import ScrollToTop from './components/ScrollToTop'; // <-- Add this file separately
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -63,7 +62,7 @@ export default function App() {
     paddingBottom: '1rem'
   }}
 >
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
     <img src={logo} alt="Mise logo" style={{ height: '40px' }} />
     <div>
       {user ? (
@@ -97,7 +96,7 @@ export default function App() {
     </div>
   </div>
 
-  <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+  <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '0.5rem', flexWrap: 'wrap', marginTop: '1rem' }}>
     {navItems.map(({ path, label, color }) => (
       <NavLink
         key={path}
