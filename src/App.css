@@ -1,9 +1,7 @@
-##root {
+#root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 1rem;     /* smaller gutter on desktop */
-  padding-left: 0.5rem;  /* tighter gutters on mobile */
-  padding-right: 0.5rem;
+  padding: 1rem 0.5rem; /* top/bottom: 1rem, left/right: 0.5rem */
 }
 
 
