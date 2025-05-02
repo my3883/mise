@@ -9,6 +9,7 @@ import logo from './assets/mise-logo.png';
 import { auth, provider } from './firebase';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { MealPlanProvider } from './context/MealPlanContext';
+import ScrollToTop from './components/ScrollToTop'; // <-- Add this file separately
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -53,74 +54,64 @@ export default function App() {
             justifyContent: 'flex-start'
           }}
         >
-          <div
-  style={{
-    position: 'sticky',
-    top: 0,
-    zIndex: 1000,
-    backgroundColor: 'white',
-    paddingBottom: '1rem'
-  }}
->
-  <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-    <img src={logo} alt="Mise logo" style={{ height: '40px' }} />
-    <div>
-      {user ? (
-        <div style={{ position: 'relative' }}>
-          <span
-            onClick={() => setShowSignOut((prev) => !prev)}
-            style={{ cursor: 'pointer', marginRight: '1rem' }}
-          >
-            👨‍🍳 {user.displayName}
-          </span>
-          {showSignOut && (
-            <div
-              style={{
-                position: 'absolute',
-                right: 0,
-                top: '1.5rem',
-                backgroundColor: 'white',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                padding: '0.5rem',
-                zIndex: 1000
-              }}
-            >
-              <button onClick={handleSignOut}>Sign Out</button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem' }}>
+            <img src={logo} alt="Mise logo" style={{ height: '40px' }} />
+            <div>
+              {user ? (
+                <div style={{ position: 'relative' }}>
+                  <span
+                    onClick={() => setShowSignOut((prev) => !prev)}
+                    style={{ cursor: 'pointer', marginRight: '1rem' }}
+                  >
+                    👨‍🍳 {user.displayName}
+                  </span>
+                  {showSignOut && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: 0,
+                        top: '1.5rem',
+                        backgroundColor: 'white',
+                        border: '1px solid #ccc',
+                        borderRadius: '4px',
+                        padding: '0.5rem',
+                        zIndex: 1000
+                      }}
+                    >
+                      <button onClick={handleSignOut}>Sign Out</button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button onClick={handleSignIn}>Sign in with Google</button>
+              )}
             </div>
-          )}
-        </div>
-      ) : (
-        <button onClick={handleSignIn}>Sign in with Google</button>
-      )}
-    </div>
-  </div>
+          </div>
 
-  <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '0.5rem', flexWrap: 'wrap', marginTop: '1rem' }}>
-    {navItems.map(({ path, label, color }) => (
-      <NavLink
-        key={path}
-        to={path}
-        style={(navData) => {
-          const isActive = navData.isActive;
-          return {
-            border: `2px solid ${color}`,
-            backgroundColor: isActive ? color : 'transparent',
-            color: isActive ? 'white' : color,
-            padding: '0.4rem 0.75rem',
-            borderRadius: '20px',
-            fontWeight: '500',
-            textDecoration: 'none',
-            fontSize: '0.95rem',
-            textAlign: 'center'
-          };
-        }}
-      >
-        {label}
-      </NavLink>
-    ))}
-  </div>
-</div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+            {navItems.map(({ path, label, color }) => (
+              <NavLink
+                key={path}
+                to={path}
+                style={(navData) => {
+                  const isActive = navData.isActive;
+                  return {
+                    border: `2px solid ${color}`,
+                    backgroundColor: isActive ? color : 'transparent',
+                    color: isActive ? 'white' : color,
+                    padding: '0.4rem 0.75rem',
+                    borderRadius: '20px',
+                    fontWeight: '500',
+                    textDecoration: 'none',
+                    fontSize: '0.95rem',
+                    textAlign: 'center'
+                  };
+                }}
+              >
+                {label}
+              </NavLink>
+            ))}
+          </div>
 
           <Routes>
             <Route path="/" element={<RecipesPage />} />
