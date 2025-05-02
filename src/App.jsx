@@ -9,7 +9,6 @@ import logo from './assets/mise-logo.png';
 import { auth, provider } from './firebase';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { MealPlanProvider } from './context/MealPlanContext';
-import ScrollToTop from './components/ScrollToTop'; // <-- Add this file separately
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -42,18 +41,7 @@ export default function App() {
   return (
     <MealPlanProvider>
       <Router>
-        <ScrollToTop />
-        <div
-          style={{
-            maxWidth: '600px',
-            margin: '0 auto',
-            padding: '1rem 0.5rem',
-            minHeight: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-start'
-          }}
-        >
+        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '1rem 0.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem' }}>
             <img src={logo} alt="Mise logo" style={{ height: '40px' }} />
             <div>
@@ -96,7 +84,7 @@ export default function App() {
                 style={(navData) => {
                   const isActive = navData.isActive;
                   return {
-                    border: `2px solid ${color}`,
+                    border: 2px solid ${color},
                     backgroundColor: isActive ? color : 'transparent',
                     color: isActive ? 'white' : color,
                     padding: '0.4rem 0.75rem',
@@ -124,3 +112,5 @@ export default function App() {
     </MealPlanProvider>
   );
 }
+
+
