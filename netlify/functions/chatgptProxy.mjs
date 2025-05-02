@@ -25,7 +25,7 @@ export default async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are Mise, a helpful Sous Chef. Respond to recipe requests in this format:
+            content: `You are Mise, a helpful Sous Chef. Respond to recipe requests and return ONLY a valid JSON object in this format:
           
           {
             "name": "Recipe Title",
@@ -33,12 +33,12 @@ export default async (req) => {
               "Protein": ["..."],
               "Produce": ["..."],
               "Starch": ["..."],
-                            "Pantry": ["..."]
+              "Pantry": ["..."]
             },
             "link": "https://valid-working-url.com/recipe"
           }
           
-          If you are making up a recipe don't include any link.`
+          If you are making up a recipe don't include any link. Do not include any explanation, commentary, or text outside the JSON.`
           },
           {
             role: 'user',
