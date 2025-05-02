@@ -68,10 +68,30 @@ export default function SousChefPage() {
     const user = auth.currentUser;
     if (!user) return setStatus('Please sign in.');
     setStatus('Parsing recipe...');
+  
+    const prompt = `
+  Extract a recipe from the following URL: ${link}.
+  Return ONLY a valid JSON object in this format:
+  
+  {
+    "name": "string",
+    "ingredients": {
+      "Protein": [],
+      "Starch": [],
+      "Produce": [],
+      "Pantry": []
+    },
+    "instructions": "string",
+    "link": "${link}"
+  }
+  
+  No explanation or extra text outside the JSON object.
+  `;
+  
     try {
-      const parsed = await callChatGPT(
-        `Extract the name, simplified cooking instructions, and ingredients categories from this URL: ${link}. Respond with a list of ingridents divided into the following categories (Protein, Produce, Starch, Pantry) then include a brief set of instructions follwed by a link to the recipe.`
-      );
+      const raw = await callChatGPT(prompt);
+      const jsonMatch = JSON.stringify(raw).match(/\{[\s\S]*?\}/);
+      const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : raw;
       setParsedImport(parsed);
       setStatus('Recipe parsed.');
     } catch (err) {
@@ -79,31 +99,39 @@ export default function SousChefPage() {
       setStatus(err.message);
     }
   };
-
-  const addImportRecipe = async () => {
-    const user = auth.currentUser;
-    if (!user) return setStatus('Please sign in.');
-    try {
-      await addDoc(collection(db, 'recipes'), { ...parsedImport, userId: user.uid });
-      setStatus('Recipe added!'); setParsedImport(null); setLink('');
-    } catch (err) {
-      console.error('Add import error:', err);
-      setStatus(`Error adding: ${err.message}`);
-    }
-  };
-
+  
   // Roulette section
   const handleRoulette = async () => {
     const user = auth.currentUser;
     const { style, cuisine, mainIngredient, chef } = pickerValues;
     if (!user) return setRouletteStatus('Please sign in.');
-    if (!style||!cuisine||!mainIngredient||!chef) return setRouletteStatus('Select all fields.');
+    if (!style || !cuisine || !mainIngredient || !chef)
+      return setRouletteStatus('Select all fields.');
+    
     setRouletteStatus('Generating recipe...');
-
+  
+    const prompt = `
+  Create a ${style} ${cuisine} recipe using ${mainIngredient} in the style of ${chef}.
+  Return ONLY a valid JSON object in this format:
+  
+  {
+    "name": "string",
+    "ingredients": {
+      "Protein": [],
+      "Starch": [],
+      "Produce": [],
+      "Pantry": []
+    },
+    "instructions": "string"
+  }
+  
+  No commentary, explanations, or text outside the JSON.
+  `;
+  
     try {
-      const parsed = await callChatGPT(
-        `Create a ${style} ${cuisine} recipe using ${mainIngredient} in the style of ${chef}. Explain why the recipe matches the request then include a list of ingredients divided into the following categories (Protein, Produce, Starch, Pantry) then include a brief set of instructions.`
-      );
+      const raw = await callChatGPT(prompt);
+      const jsonMatch = JSON.stringify(raw).match(/\{[\s\S]*?\}/); // fallback in case of parsing
+      const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : raw;
       setRouletteRecipe(parsed);
       setRouletteStatus('Recipe generated.');
     } catch (err) {
@@ -111,18 +139,7 @@ export default function SousChefPage() {
       setRouletteStatus(err.message);
     }
   };
-
-  const addRouletteRecipe = async () => {
-    const user = auth.currentUser;
-    if (!user) return setRouletteStatus('Please sign in.');
-    try {
-      await addDoc(collection(db, 'recipes'), { ...rouletteRecipe, userId: user.uid });
-      setRouletteStatus('Added!'); setRouletteRecipe(null);
-    } catch (err) {
-      console.error('Add roulette error:', err);
-      setRouletteStatus(`Error adding: ${err.message}`);
-    }
-  };
+  
 
   // Custom section
   const handleCustomPrompt = async () => {
