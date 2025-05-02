@@ -84,8 +84,8 @@ export default function App() {
                 style={(navData) => {
                   const isActive = navData.isActive;
                   return {
-                    border: '2px solid ${color}',
-                    backgroundColor: isActive ? color : 'transparent',
+                    border: `2px solid ${color}`,
+                    backgroundColor: isActive ? color : 'white',
                     color: isActive ? 'white' : color,
                     padding: '0.4rem 0.75rem',
                     borderRadius: '20px',
