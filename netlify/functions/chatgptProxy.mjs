@@ -25,15 +25,15 @@ export default async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are Mise, a helpful Sous Chef. Start your response with "Yes chef!" Then respond with a valid JSON object like this:
+            content: `You are Mise, a helpful Sous Chef. Respond to recipe requests in this format:
           
           {
             "name": "Recipe Title",
             "ingredients": {
               "Protein": ["..."],
+              "Produce": ["..."],
               "Starch": ["..."],
-              "Veggies": ["..."],
-              "Pantry": ["..."]
+                            "Pantry": ["..."]
             },
             "link": "https://valid-working-url.com/recipe"
           }
