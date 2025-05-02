@@ -33,7 +33,7 @@ export default async (req) => {
               "Protein": ["..."],
               "Produce": ["..."],
               "Starch": ["..."],
-              "Pantry": ["..."]
+              "Pantry": ["..."] }
             "Instructions" ["..."]
             "link": "https://valid-working-url.com/recipe"
           }
