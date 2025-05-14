@@ -168,7 +168,15 @@ No commentary, explanations, or text outside the JSON.
   const buttonStyle = { padding:'0.5rem 1rem', backgroundColor:'#3498db', color:'white', border:'none', borderRadius:'4px', cursor:'pointer', marginTop:'0.5rem' };
 
   return (
-    <div style={{ paddingTop:'3rem', textAlign:'left' }}>
+    <div style={{
+      padding: '1rem',
+      textAlign: 'left',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-start',
+      alignItems: 'stretch',
+      minHeight: '100vh'
+    }}>
       {/* Import Section */}
       <div style={{ marginBottom:'1rem' }}>
         <button onClick={()=>toggleSection('import')} style={headingStyle}>{arrow(expandedSection==='import')} Import Recipe from Link</button>
