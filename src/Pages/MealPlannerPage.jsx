@@ -106,7 +106,15 @@ export default function MealPlannerPage() {
   }
 
   return (
-    <div style={{ padding: '1rem', textAlign: 'left' }}>
+    <div style={{
+      padding: '1rem',
+      textAlign: 'left',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-start',
+      alignItems: 'stretch',
+      minHeight: '100vh'
+    }}>  
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
         <label style={{ display: 'flex', alignItems: 'left' }}>
           <span style={{ marginRight: '0.5rem' }}>Show weekends</span>
