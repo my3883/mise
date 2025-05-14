@@ -54,8 +54,7 @@ export default function SousChefPage() {
 
     const prompt = `
 Create a recipe for ${scale} people that I can cook in ${difficulty} using ${mainIngredient} in the style of ${style}.
-Only return a valid JSON object with this exact structure:
-s;
+;
 
     try {
       const raw = await callChatGPT(prompt);
