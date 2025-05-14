@@ -45,7 +45,15 @@ export default function RecipesPage() {
   };
 
   return (
-    <div style={{ textAlign: 'left' }}>
+    <div style={{
+      padding: '1rem',
+      textAlign: 'left',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-start',
+      alignItems: 'stretch',
+      minHeight: '100vh'
+    }}>
       {!selectedRecipe ? (
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {recipes.map((recipe) => (
