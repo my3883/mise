@@ -6,7 +6,7 @@ import axios from 'axios';
 const arrow = (expanded) => expanded ? '▼' : '▶';
 
 const options = {
-  mainIngredient: ['chicken','beef','pork','salmon','white fish','shrimp','tofu','mushrooms','beans','veggies'],
+  mainIngredient: ['chicken','beef','pork','fish','shellfish','tofu','mushrooms','beans','veggies'],
   style: [
     'Carbone',
     'Chez Panisse',
@@ -54,20 +54,20 @@ export default function SousChefPage() {
 
     const prompt = `
 Create a recipe for ${scale} people that I can cook in ${difficulty} using ${mainIngredient} in the style of ${style}.
-Return ONLY a valid JSON object in this format:
+Only return a valid JSON object with this exact structure:
 
 {
   "name": "string",
   "ingredients": {
-    "Protein": [],
-    "Starch": [],
-    "Produce": [],
-    "Pantry": []
+    "Protein": ["..."],
+    "Starch": ["..."],
+    "Produce": ["..."],
+    "Pantry": ["..."]
   },
   "instructions": "string"
 }
 
-No commentary, explanations, or text outside the JSON.
+Do not include any extra text, comments, or markdown. Return ONLY the JSON object, with all required fields.
 `;
 
     try {
@@ -116,3 +116,36 @@ No commentary, explanations, or text outside the JSON.
               <select value={pickerValues.difficulty} onChange={e => setPickerValues(prev => ({ ...prev, difficulty: e.target.value }))} style={dropdownStyle}>
                 <option value="">-- difficulty --</option>
                 {options.difficulty.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+              &nbsp;using&nbsp;
+              <select value={pickerValues.mainIngredient} onChange={e => setPickerValues(prev => ({ ...prev, mainIngredient: e.target.value }))} style={dropdownStyle}>
+                <option value="">-- main ingredient --</option>
+                {options.mainIngredient.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+              &nbsp;in the style of&nbsp;
+              <select value={pickerValues.style} onChange={e => setPickerValues(prev => ({ ...prev, style: e.target.value }))} style={dropdownStyle}>
+                <option value="">-- style --</option>
+                {options.style.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              .
+            </p>
+            <button onClick={handleRoulette} style={buttonStyle}>Generate Recipe</button>
+            {rouletteStatus && <p>{rouletteStatus}</p>}
+            {rouletteRecipe && (
+              <div style={{ border:'1px solid #ccc', borderRadius:'4px', padding:'1rem', marginTop:'0.5rem', textAlign:'left' }}>
+                <h4>{rouletteRecipe.name}</h4>
+                <ul style={{ paddingLeft: '1rem', margin:'0.5rem 0' }}>
+                  {Object.entries(rouletteRecipe.ingredients).map(([cat, items]) => (
+                    items.length > 0 && <li key={cat}><strong>{cat}:</strong> {items.join(', ')}</li>
+                  ))}
+                </ul>
+                <p style={{ fontStyle:'italic' }}>{rouletteRecipe.instructions}</p>
+                <button onClick={addRouletteRecipe} style={{ ...buttonStyle, backgroundColor:'#179497' }}>Add to Recipes</button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
