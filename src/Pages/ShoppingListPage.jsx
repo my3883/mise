@@ -87,7 +87,15 @@ export default function ShoppingListPage() {
   const hasNext = Object.values(shoppingList.next).some(arr => arr.length > 0);
 
   return (
-    <div style={{ paddingTop: '3rem', textAlign: 'left' }}>
+    <div style={{
+      padding: '1rem',
+      textAlign: 'left',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-start',
+      alignItems: 'stretch',
+      minHeight: '100vh'
+    }}>
       {hasCurrent && (
         <>
           <h3>This Week</h3>
