@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { auth } from '../firebase';
 import { db, collection, getDocs, query, where } from '../firestore';
-import { doc as docRef } from 'firebase/firestore';
-import { getDoc, setDoc } from 'firebase/firestore';
+import { doc as docRef, getDoc, setDoc } from 'firebase/firestore';
 import { useMealPlan } from '../context/MealPlanContext';
 
 export default function MealPlannerPage() {
@@ -12,7 +11,18 @@ export default function MealPlannerPage() {
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const user = auth.currentUser;
 
-  // Fetch saved settings (mealPlan & showWeekends) from Firestore once
+  const getWeekStartKey = (offset = 0) => {
+    const now = new Date();
+    const day = now.getDay();
+    const mondayOffset = (day === 0 ? -6 : 1) - day + offset * 7;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + mondayOffset);
+    return monday.toISOString().split('T')[0];
+  };
+
+  const thisWeekKey = getWeekStartKey(0);
+  const nextWeekKey = getWeekStartKey(1);
+
   useEffect(() => {
     if (!user) return;
     const settingsRef = docRef(db, 'userSettings', user.uid);
@@ -27,14 +37,12 @@ export default function MealPlannerPage() {
     })();
   }, [user, setMealPlan]);
 
-  // Persist showWeekends to Firestore on change
   useEffect(() => {
     if (!user || !settingsLoaded) return;
     const settingsRef = docRef(db, 'userSettings', user.uid);
     setDoc(settingsRef, { showWeekends }, { merge: true });
   }, [showWeekends, user, settingsLoaded]);
 
-  // Fetch user's recipes
   useEffect(() => {
     if (!user) return;
     (async () => {
@@ -46,7 +54,6 @@ export default function MealPlannerPage() {
     })();
   }, [user]);
 
-  // Handle selection and persist mealPlan
   const handleSelect = (weekKey, day, value) => {
     const updatedPlan = {
       ...mealPlan,
@@ -62,9 +69,8 @@ export default function MealPlannerPage() {
     }
   };
 
-  // Render each week
-  const renderWeek = (weekLabel, planKey) => {
-    const plan = mealPlan[planKey] || {};
+  const renderWeek = (weekLabel, weekKey) => {
+    const plan = mealPlan[weekKey] || {};
     const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
     return (
       <div style={{ marginBottom: '2rem' }}>
@@ -78,11 +84,11 @@ export default function MealPlannerPage() {
           dateObj.setDate(base + offset);
           const formatted = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           return (
-            <div key={day} style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <div key={day} style={{ display: 'flex', alignItems: 'left', marginBottom: '0.5rem' }}>
               <div style={{ width: '6rem', fontSize: '0.85rem' }}>{day} {formatted}</div>
               <select
                 value={plan[day] || ''}
-                onChange={e => handleSelect(planKey, day, e.target.value)}
+                onChange={e => handleSelect(weekKey, day, e.target.value)}
                 style={{ flex: 1, fontSize: '0.85rem', padding: '0.25rem' }}
               >
                 <option value="">-- Select a recipe --</option>
@@ -100,9 +106,9 @@ export default function MealPlannerPage() {
   }
 
   return (
-    <div style={{ padding: '1rem' }}>
+    <div style={{ padding: '1rem', textAlign: 'left' }}>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-        <label style={{ display: 'flex', alignItems: 'center' }}>
+        <label style={{ display: 'flex', alignItems: 'left' }}>
           <span style={{ marginRight: '0.5rem' }}>Show weekends</span>
           <input
             type="checkbox"
@@ -112,8 +118,8 @@ export default function MealPlannerPage() {
           />
         </label>
       </div>
-      {renderWeek('This Week', 'current')}
-      {renderWeek('Next Week', 'next')}
+      {renderWeek('This Week', thisWeekKey)}
+      {renderWeek('Next Week', nextWeekKey)}
     </div>
   );
 }
