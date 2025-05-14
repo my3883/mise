@@ -1,5 +1,16 @@
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where } from 'firebase/firestore';
-import { app } from './firebase'; // ensure `app` is exported from your firebase.js
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  query,
+  where,
+  updateDoc 
+} from 'firebase/firestore';
+
+import { app } from './firebase';
 
 const db = getFirestore(app);
 
@@ -11,5 +22,6 @@ export {
   deleteDoc,
   doc,
   query,
-  where
+  where,
+  updateDoc 
 };
