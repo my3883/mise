@@ -103,9 +103,7 @@ export default function SousChefPage() {
     const prompt = `Create a recipe for ${servings} people that I can cook in ${difficulty} using ${mainIngredient} in the style of ${style}. Return ONLY a valid JSON object in this format: { "name": "string", "ingredients": { "Protein": [], "Starch": [], "Produce": [], "Pantry": [] }, "instructions": "string" }`;
 
     try {
-      const raw = await callChatGPT(prompt);
-      const jsonMatch = JSON.stringify(raw).match(/\{[\s\S]*?\}/);
-      const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : raw;
+      const parsed = await callChatGPT(prompt);
       setRouletteRecipe(parsed);
       setRouletteStatus('Recipe generated.');
     } catch (err) {
