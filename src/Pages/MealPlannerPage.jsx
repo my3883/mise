@@ -59,7 +59,7 @@ export default function MealPlannerPage() {
       ...mealPlan,
       [weekKey]: {
         ...mealPlan[weekKey],
-        [day]: value
+        [day]: value // this is recipeId now
       }
     };
     setMealPlan(updatedPlan);
@@ -92,7 +92,7 @@ export default function MealPlannerPage() {
                 style={{ flex: 1, fontSize: '0.85rem', padding: '0.25rem' }}
               >
                 <option value="">-- Select a recipe --</option>
-                {recipes.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}
+                {recipes.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
             </div>
           );

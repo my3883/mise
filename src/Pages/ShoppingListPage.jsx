@@ -31,14 +31,13 @@ export default function ShoppingListPage() {
       return monday.toISOString().split('T')[0];
     };
 
-    const weekKeys = Object.keys(mealPlan).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
     const currentWeekKey = getWeekStartKey(0);
     const nextWeekKey = getWeekStartKey(1);
 
     const generateList = (plan) => {
       const selected = Object.entries(plan || {})
-        .filter(([, name]) => name)
-        .map(([, name]) => recipes.find(r => r.name === name))
+        .filter(([, recipeId]) => recipeId)
+        .map(([, recipeId]) => recipes.find(r => r.id === recipeId))
         .filter(Boolean);
 
       const categories = { Produce: [], Protein: [], Starch: [], Pantry: [] };
