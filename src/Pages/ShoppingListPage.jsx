@@ -10,6 +10,18 @@ export default function ShoppingListPage() {
   const [checkedItems, setCheckedItems] = useState(new Set());
   const user = auth.currentUser;
 
+  const getWeekStartKey = (offset = 0) => {
+    const now = new Date();
+    const day = now.getDay();
+    const mondayOffset = (day === 0 ? -6 : 1) - day + offset * 7;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + mondayOffset);
+    return monday.toISOString().split('T')[0];
+  };
+
+  const thisWeekKey = getWeekStartKey(0);
+  const nextWeekKey = getWeekStartKey(1);
+
   useEffect(() => {
     const fetchRecipes = async () => {
       if (!user) return;
@@ -23,9 +35,8 @@ export default function ShoppingListPage() {
 
   useEffect(() => {
     const generateList = (plan) => {
-      const selected = Object.entries(plan)
-        .filter(([day]) => day !== 'Saturday' && day !== 'Sunday')
-        .map(([, name]) => recipes.find(r => r.name === name))
+      const selected = Object.values(plan || {})
+        .map(name => recipes.find(r => r.name === name))
         .filter(Boolean);
 
       const categories = { Produce: [], Protein: [], Starch: [], Pantry: [] };
@@ -47,10 +58,10 @@ export default function ShoppingListPage() {
     };
 
     setShoppingList({
-      current: generateList(mealPlan.current),
-      next: generateList(mealPlan.next),
+      current: generateList(mealPlan[thisWeekKey]),
+      next: generateList(mealPlan[nextWeekKey]),
     });
-  }, [mealPlan, recipes]);
+  }, [mealPlan, recipes, thisWeekKey, nextWeekKey]);
 
   const toggleItem = (item) => {
     setCheckedItems(prev => {
