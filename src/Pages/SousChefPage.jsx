@@ -49,20 +49,21 @@ export default function SousChefPage() {
     setRouletteStatus('Generating recipe...');
 
     const prompt = `
-Create a recipe for ${scale} people that I can cook in ${difficulty} using ${mainIngredient} in the style of ${style}.
-Return ONLY a valid JSON object in this format:
-{
-  "name": "string",
-  "ingredients": {
-    "Protein": [],
-    "Starch": [],
-    "Produce": [],
-    "Pantry": []
-  },
-  "instructions": "string"
-}
-No commentary, explanations, or text outside the JSON.
-`;
+    Create a recipe for ${scale} people that I can cook in ${difficulty} using ${mainIngredient} in the style of ${style}.
+    Respond ONLY with a valid JSON object. Do not add any extra commentary or text.
+
+    {
+      "name": "string",
+      "ingredients": {
+        "Protein": ["string"],
+        "Starch": ["string"],
+        "Produce": ["string"],
+        "Pantry": ["string"]
+      },
+      "instructions": "string"
+    }
+    `;
+
 
     try {
       const raw = await callChatGPT(prompt);
