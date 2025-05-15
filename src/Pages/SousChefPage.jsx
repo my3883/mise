@@ -6,24 +6,20 @@ import axios from 'axios';
 const arrow = (expanded) => expanded ? '▼' : '▶';
 
 const options = {
-  mainIngredient: ['chicken','beef','pork','fish','shellfish','tofu','mushrooms','beans','veggies'],
+  mainIngredient: ['chicken','beef','pork','salmon','white fish','shrimp','tofu','mushrooms','beans','veggies'],
   style: [
-    'Carbone',
-    'Chez Panisse',
-    'Joes Shanghai',
-    'Ottolenghi',
-    'Nobu',
-    'Noma',
-    'Pok Pok',
-    'Taco Bell',
-    'Uchi',
-    'Zahav',
-    'Zuni Cafe'
+    'Carbone','Chez Panisse','Joes Shanghai','Ottolenghi','Nobu','Noma','Pok Pok','Taco Bell','Uchi','Zahav','Zuni Cafe'
   ],
   difficulty: ['under 30 minutes','1-2 hours','all day']
 };
 
 export default function SousChefPage() {
+  const [link, setLink] = useState('');
+  const [parsedImport, setParsedImport] = useState(null);
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [customRecipeObj, setCustomRecipeObj] = useState(null);
+  const [status, setStatus] = useState('');
+  const [customStatus, setCustomStatus] = useState('');
   const [rouletteRecipe, setRouletteRecipe] = useState(null);
   const [rouletteStatus, setRouletteStatus] = useState('');
   const [expandedSection, setExpandedSection] = useState('roulette');
@@ -54,7 +50,19 @@ export default function SousChefPage() {
 
     const prompt = `
 Create a recipe for ${scale} people that I can cook in ${difficulty} using ${mainIngredient} in the style of ${style}.
-;
+Return ONLY a valid JSON object in this format:
+{
+  "name": "string",
+  "ingredients": {
+    "Protein": [],
+    "Starch": [],
+    "Produce": [],
+    "Pantry": []
+  },
+  "instructions": "string"
+}
+No commentary, explanations, or text outside the JSON.
+`;
 
     try {
       const raw = await callChatGPT(prompt);
@@ -80,12 +88,101 @@ Create a recipe for ${scale} people that I can cook in ${difficulty} using ${mai
     }
   };
 
+  const handleImportLink = async () => {
+    if (!link) return;
+    const user = auth.currentUser;
+    if (!user) return setStatus('Please sign in.');
+    setStatus('Parsing recipe...');
+    try {
+      const parsed = await callChatGPT(
+        `Extract the name, simplified cooking instructions, and ingredients categories from this URL: ${link}. Respond with a list of ingredients divided into the following categories (Protein, Produce, Starch, Pantry) then include a brief set of instructions followed by a link to the recipe.`
+      );
+      setParsedImport(parsed);
+      setStatus('Recipe parsed.');
+    } catch (err) {
+      console.error('Import error:', err);
+      setStatus(err.message);
+    }
+  };
+
+  const addImportRecipe = async () => {
+    const user = auth.currentUser;
+    if (!user) return setStatus('Please sign in.');
+    try {
+      await addDoc(collection(db, 'recipes'), { ...parsedImport, userId: user.uid });
+      setStatus('Recipe added!'); setParsedImport(null); setLink('');
+    } catch (err) {
+      console.error('Add import error:', err);
+      setStatus(`Error adding: ${err.message}`);
+    }
+  };
+
+  const handleCustomPrompt = async () => {
+    const user = auth.currentUser;
+    if (!user) return setCustomStatus('Please sign in.');
+    if (!customPrompt) return;
+    setCustomStatus('Generating recipe...');
+
+    try {
+      const parsed = await callChatGPT(
+        `Generate a custom recipe: ${customPrompt}. Respond ONLY with a valid JSON object that includes a name, categorized ingredients, and a short set of instructions.`
+      );
+      setCustomRecipeObj(parsed);
+      setCustomStatus('Recipe generated.');
+    } catch (err) {
+      console.error('Custom error:', err);
+      setCustomStatus(err.message);
+    }
+  };
+
+  const addCustomRecipe = async () => {
+    const user = auth.currentUser;
+    if (!user) return setCustomStatus('Please sign in.');
+    try {
+      await addDoc(collection(db, 'recipes'), { ...customRecipeObj, userId: user.uid });
+      setCustomStatus('Added!'); setCustomRecipeObj(null);
+    } catch (err) {
+      console.error('Add custom error:', err);
+      setCustomStatus(`Error adding: ${err.message}`);
+    }
+  };
+
   const dropdownStyle = { padding: '0.25rem', fontSize: '1rem', border: '1px solid #ccc', borderRadius: '4px' };
   const headingStyle = { padding:'0.3rem 0', textAlign:'left', fontWeight:'normal', fontSize:'1.1rem', background:'none', border:'none', width:'100%' };
   const buttonStyle = { padding:'0.5rem 1rem', backgroundColor:'#3498db', color:'white', border:'none', borderRadius:'4px', cursor:'pointer', marginTop:'0.5rem' };
 
+  const renderRecipeCard = (recipe, onAdd, showLink = false) => (
+    <div style={{ border:'1px solid #ccc', borderRadius:'4px', padding:'1rem', marginTop:'0.5rem', textAlign:'left' }}>
+      <h4>{recipe.name}</h4>
+      <ul style={{ paddingLeft: '1rem', margin:'0.5rem 0' }}>
+        {Object.entries(recipe.ingredients).map(([cat, items]) => (
+          items.length > 0 && <li key={cat}><strong>{cat}:</strong> {items.join(', ')}</li>
+        ))}
+      </ul>
+      {recipe.instructions && <p style={{ fontStyle:'italic' }}>{recipe.instructions}</p>}
+      {showLink && recipe.link?.startsWith('http') && (
+        <div style={{ margin:'0.5rem 0' }}><a href={recipe.link} target="_blank" rel="noopener noreferrer">View Source</a></div>
+      )}
+      <button onClick={onAdd} style={{ ...buttonStyle, backgroundColor:'#179497' }}>Add to Recipes</button>
+    </div>
+  );
+
   return (
     <div style={{ padding: '1rem', textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'stretch', minHeight: '100vh' }}>
+      {/* Import Section */}
+      <div style={{ marginBottom:'1rem' }}>
+        <button onClick={() => setExpandedSection('import')} style={headingStyle}>{arrow(expandedSection==='import')} Import Recipe from Link</button>
+        {expandedSection === 'import' && (
+          <div style={{ marginTop:'0.5rem' }}>
+            <input type="text" value={link} onChange={e => setLink(e.target.value)} placeholder="Recipe URL" style={{ width:'100%', padding:'0.5rem' }} />
+            <button onClick={handleImportLink} style={buttonStyle}>Generate Recipe</button>
+            {status && <p>{status}</p>}
+            {parsedImport && renderRecipeCard(parsedImport, addImportRecipe, true)}
+          </div>
+        )}
+      </div>
+
+      {/* Roulette Section */}
       <div style={{ marginBottom:'1rem' }}>
         <button onClick={() => setExpandedSection('roulette')} style={headingStyle}>{arrow(expandedSection==='roulette')} Recipe Roulette</button>
         {expandedSection === 'roulette' && (
@@ -117,18 +214,20 @@ Create a recipe for ${scale} people that I can cook in ${difficulty} using ${mai
             </p>
             <button onClick={handleRoulette} style={buttonStyle}>Generate Recipe</button>
             {rouletteStatus && <p>{rouletteStatus}</p>}
-            {rouletteRecipe && (
-              <div style={{ border:'1px solid #ccc', borderRadius:'4px', padding:'1rem', marginTop:'0.5rem', textAlign:'left' }}>
-                <h4>{rouletteRecipe.name}</h4>
-                <ul style={{ paddingLeft: '1rem', margin:'0.5rem 0' }}>
-                  {Object.entries(rouletteRecipe.ingredients).map(([cat, items]) => (
-                    items.length > 0 && <li key={cat}><strong>{cat}:</strong> {items.join(', ')}</li>
-                  ))}
-                </ul>
-                <p style={{ fontStyle:'italic' }}>{rouletteRecipe.instructions}</p>
-                <button onClick={addRouletteRecipe} style={{ ...buttonStyle, backgroundColor:'#179497' }}>Add to Recipes</button>
-              </div>
-            )}
+            {rouletteRecipe && renderRecipeCard(rouletteRecipe, addRouletteRecipe, false)}
+          </div>
+        )}
+      </div>
+
+      {/* Custom Section */}
+      <div>
+        <button onClick={() => setExpandedSection('custom')} style={headingStyle}>{arrow(expandedSection==='custom')} Generate Custom Recipe</button>
+        {expandedSection === 'custom' && (
+          <div style={{ marginTop:'0.5rem' }}>
+            <textarea value={customPrompt} onChange={e => setCustomPrompt(e.target.value)} placeholder="Describe what you want" rows={3} style={{ width:'100%', padding:'0.5rem' }} />
+            <button onClick={handleCustomPrompt} style={buttonStyle}>Generate Recipe</button>
+            {customStatus && <p>{customStatus}</p>}
+            {customRecipeObj && renderRecipeCard(customRecipeObj, addCustomRecipe, false)}
           </div>
         )}
       </div>
