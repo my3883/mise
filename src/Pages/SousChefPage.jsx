@@ -70,7 +70,7 @@ export default function SousChefPage() {
     setStatus('Parsing recipe...');
     try {
       const parsed = await callChatGPT(
-        Extract the name, simplified cooking instructions, and ingredients categories from this URL: ${link}. Respond with a list of ingredients divided into the following categories (Protein, Produce, Starch, Pantry) then include a brief set of instructions followed by a link to the recipe.
+        Extract the title, simplified cooking instructions, and ingredients categories from this URL: ${link}. Respond with a list of ingredients divided into the following categories (Protein, Produce, Starch, Pantry) then include a brief set of instructions followed by a link to the recipe.
       );
       setParsedImport(parsed);
       setStatus('Recipe parsed.');
