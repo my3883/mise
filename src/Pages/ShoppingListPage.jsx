@@ -34,10 +34,18 @@ export default function ShoppingListPage() {
     const currentWeekKey = getWeekStartKey(0);
     const nextWeekKey = getWeekStartKey(1);
 
+    console.log('Current week key:', currentWeekKey);
+    console.log('Next week key:', nextWeekKey);
+    console.log('mealPlan:', mealPlan);
+
     const generateList = (plan) => {
       const selected = Object.entries(plan || {})
         .filter(([, recipeId]) => recipeId)
-        .map(([, recipeId]) => recipes.find(r => r.id === recipeId))
+        .map(([, recipeId]) => {
+          const found = recipes.find(r => r.id === recipeId);
+          if (!found) console.warn('Missing recipe for ID:', recipeId);
+          return found;
+        })
         .filter(Boolean);
 
       const categories = { Produce: [], Protein: [], Starch: [], Pantry: [] };
@@ -58,9 +66,15 @@ export default function ShoppingListPage() {
       return categories;
     };
 
+    const currentList = generateList(mealPlan[currentWeekKey]);
+    const nextList = generateList(mealPlan[nextWeekKey]);
+
+    console.log('Shopping list - current:', currentList);
+    console.log('Shopping list - next:', nextList);
+
     setShoppingList({
-      current: generateList(mealPlan[currentWeekKey]),
-      next: generateList(mealPlan[nextWeekKey]),
+      current: currentList,
+      next: nextList,
     });
   }, [mealPlan, recipes]);
 
@@ -98,6 +112,15 @@ export default function ShoppingListPage() {
   const hasCurrent = Object.values(shoppingList.current).some(arr => arr.length > 0);
   const hasNext = Object.values(shoppingList.next).some(arr => arr.length > 0);
 
+  if (!hasCurrent && !hasNext) {
+    return (
+      <div style={{ padding: '1rem' }}>
+        <h3>Shopping List</h3>
+        <p>No ingredients found for this or next week. Try assigning meals in the planner first.</p>
+      </div>
+    );
+  }
+
   return (
     <div style={{
       padding: '1rem',
@@ -108,18 +131,18 @@ export default function ShoppingListPage() {
       alignItems: 'stretch',
       minHeight: '100vh'
     }}>
+      <h3>Shopping List</h3>
       {hasCurrent && (
         <>
-          <h3>This Week</h3>
+          <h4>This Week</h4>
           {Object.entries(shoppingList.current).map(([category, items]) =>
             renderCategory(items, category)
           )}
         </>
       )}
-
       {hasNext && (
         <>
-          <h3 style={{ marginTop: '2rem' }}>Next Week</h3>
+          <h4 style={{ marginTop: '2rem' }}>Next Week</h4>
           {Object.entries(shoppingList.next).map(([category, items]) =>
             renderCategory(items, category)
           )}
