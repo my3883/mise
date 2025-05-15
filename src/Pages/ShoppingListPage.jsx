@@ -35,8 +35,9 @@ export default function ShoppingListPage() {
 
   useEffect(() => {
     const generateList = (plan) => {
-      const selected = Object.values(plan || {})
-        .map(name => recipes.find(r => r.name === name))
+      const selected = Object.entries(plan || {})
+        .filter(([, name]) => name) // only include days with selected recipes
+        .map(([, name]) => recipes.find(r => r.name === name))
         .filter(Boolean);
 
       const categories = { Produce: [], Protein: [], Starch: [], Pantry: [] };
