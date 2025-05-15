@@ -10,18 +10,6 @@ export default function ShoppingListPage() {
   const [checkedItems, setCheckedItems] = useState(new Set());
   const user = auth.currentUser;
 
-  const getWeekStartKey = (offset = 0) => {
-    const now = new Date();
-    const day = now.getDay();
-    const mondayOffset = (day === 0 ? -6 : 1) - day + offset * 7;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + mondayOffset);
-    return monday.toISOString().split('T')[0];
-  };
-
-  const thisWeekKey = getWeekStartKey(0);
-  const nextWeekKey = getWeekStartKey(1);
-
   useEffect(() => {
     const fetchRecipes = async () => {
       if (!user) return;
@@ -34,14 +22,23 @@ export default function ShoppingListPage() {
   }, [user]);
 
   useEffect(() => {
+    const getWeekStartKey = (offset = 0) => {
+      const now = new Date();
+      const day = now.getDay();
+      const mondayOffset = (day === 0 ? -6 : 1) - day + offset * 7;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + mondayOffset);
+      return monday.toISOString().split('T')[0];
+    };
+
+    const weekKeys = Object.keys(mealPlan).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k));
+    const currentWeekKey = getWeekStartKey(0);
+    const nextWeekKey = getWeekStartKey(1);
+
     const generateList = (plan) => {
       const selected = Object.entries(plan || {})
         .filter(([, name]) => name)
-        .map(([dateKey, name]) => {
-          const recipe = recipes.find(r => r.name === name);
-          if (!recipe) return null;
-          return recipe;
-        })
+        .map(([, name]) => recipes.find(r => r.name === name))
         .filter(Boolean);
 
       const categories = { Produce: [], Protein: [], Starch: [], Pantry: [] };
@@ -63,10 +60,10 @@ export default function ShoppingListPage() {
     };
 
     setShoppingList({
-      current: generateList(mealPlan[thisWeekKey]),
+      current: generateList(mealPlan[currentWeekKey]),
       next: generateList(mealPlan[nextWeekKey]),
     });
-  }, [mealPlan, recipes, thisWeekKey, nextWeekKey]);
+  }, [mealPlan, recipes]);
 
   const toggleItem = (item) => {
     setCheckedItems(prev => {
