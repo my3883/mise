@@ -32,6 +32,7 @@ export default function SousChefPage() {
     try {
       return JSON.parse(text);
     } catch (e) {
+      console.error('Invalid JSON response from ChatGPT:', text);
       throw new Error(`Invalid JSON response from ChatGPT: ${text}`);
     }
   };
@@ -57,6 +58,7 @@ export default function SousChefPage() {
   const callChatGPT = async (prompt) => {
     const { data } = await axios.post('/.netlify/functions/chatgptProxy', { prompt });
     const reply = data.reply?.trim() || '';
+    console.log('Raw ChatGPT reply:', reply);
     return safeParse(reply);
   };
 
@@ -86,6 +88,41 @@ export default function SousChefPage() {
     } catch (err) {
       console.error('Add import error:', err);
       setStatus(`Error adding: ${err.message}`);
+    }
+  };
+
+  const handleRoulette = async () => {
+    const user = auth.currentUser;
+    const { style, difficulty, mainIngredient, servings } = pickerValues;
+    if (!user) return setRouletteStatus('Please sign in.');
+    if (!style || !difficulty || !mainIngredient || !servings)
+      return setRouletteStatus('Select all fields.');
+
+    setRouletteStatus('Generating recipe...');
+
+    const prompt = `Create a recipe for ${servings} people that I can cook in ${difficulty} using ${mainIngredient} in the style of ${style}. Return ONLY a valid JSON object in this format: { "name": "string", "ingredients": { "Protein": [], "Starch": [], "Produce": [], "Pantry": [] }, "instructions": "string" }`;
+
+    try {
+      const raw = await callChatGPT(prompt);
+      const jsonMatch = JSON.stringify(raw).match(/\{[\s\S]*?\}/);
+      const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : raw;
+      setRouletteRecipe(parsed);
+      setRouletteStatus('Recipe generated.');
+    } catch (err) {
+      console.error('Roulette error:', err);
+      setRouletteStatus(err.message);
+    }
+  };
+
+  const addRouletteRecipe = async () => {
+    const user = auth.currentUser;
+    if (!user) return setRouletteStatus('Please sign in.');
+    try {
+      await addDoc(collection(db, 'recipes'), { ...rouletteRecipe, userId: user.uid });
+      setRouletteStatus('Added!'); setRouletteRecipe(null);
+    } catch (err) {
+      console.error('Add recipe error:', err);
+      setRouletteStatus(`Error adding: ${err.message}`);
     }
   };
 
@@ -143,8 +180,9 @@ export default function SousChefPage() {
         <button onClick={()=>toggleSection('roulette')} style={headingStyle}>{arrow(expandedSection==='roulette')} Recipe Roulette</button>
         {expandedSection==='roulette'&&(
           <div style={{marginTop:'0.5rem'}}>
-            <p style={{lineHeight:'2rem'}}>Create a recipe for
-              <input type="number" min={1} value={pickerValues.servings} onChange={e=>setPickerValues(prev => ({ ...prev, servings: Number(e.target.value) }))} style={{width:'4rem', margin:'0 0.5rem'}} />
+            <p style={{lineHeight:'2rem'}}>
+              Create a recipe for
+              <input type="number" min="1" max="20" value={pickerValues.servings} onChange={e => setPickerValues(prev => ({ ...prev, servings: parseInt(e.target.value) }))} style={{...dropdownStyle, width:'4rem', margin:'0 0.5rem'}} />
               people that I can cook in
               <select value={pickerValues.difficulty} onChange={e => setPickerValues(prev => ({ ...prev, difficulty: e.target.value }))} style={dropdownStyle}>
                 <option value="">-- difficulty --</option>
@@ -159,41 +197,12 @@ export default function SousChefPage() {
               <select value={pickerValues.style} onChange={e => setPickerValues(prev => ({ ...prev, style: e.target.value }))} style={dropdownStyle}>
                 <option value="">-- style --</option>
                 {options.style.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>.
+              </select>
+              .
             </p>
-            <button onClick={async () => {
-              const user = auth.currentUser;
-              if (!user) return setRouletteStatus('Please sign in.');
-              const { style, mainIngredient, difficulty, servings } = pickerValues;
-              if (!style || !mainIngredient || !difficulty || !servings)
-                return setRouletteStatus('Select all fields.');
-              setRouletteStatus('Generating recipe...');
-
-              const prompt = `Create a recipe for ${servings} people that I can cook in ${difficulty} using ${mainIngredient} in the style of ${style}. Return ONLY a valid JSON object in this format:\n\n{\n  "name": "string",\n  "ingredients": {\n    "Protein": [],\n    "Starch": [],\n    "Produce": [],\n    "Pantry": []\n  },\n  "instructions": "string"\n}`;
-              try {
-                const raw = await callChatGPT(prompt);
-                const parsed = JSON.stringify(raw).match(/\{[\s\S]*?\}/);
-                const result = parsed ? JSON.parse(parsed[0]) : raw;
-                setRouletteRecipe(result);
-                setRouletteStatus('Recipe generated.');
-              } catch (err) {
-                console.error('Roulette error:', err);
-                setRouletteStatus(err.message);
-              }
-            }} style={buttonStyle}>Generate Recipe</button>
+            <button onClick={handleRoulette} style={buttonStyle}>Generate Recipe</button>
             {rouletteStatus && <p>{rouletteStatus}</p>}
-            {rouletteRecipe && renderRecipeCard(rouletteRecipe, async () => {
-              const user = auth.currentUser;
-              if (!user) return setRouletteStatus('Please sign in.');
-              try {
-                await addDoc(collection(db, 'recipes'), { ...rouletteRecipe, userId: user.uid });
-                setRouletteStatus('Recipe added!');
-                setRouletteRecipe(null);
-              } catch (err) {
-                console.error('Add recipe error:', err);
-                setRouletteStatus(`Error adding: ${err.message}`);
-              }
-            }, false)}
+            {rouletteRecipe && renderRecipeCard(rouletteRecipe, addRouletteRecipe, false)}
           </div>
         )}
       </div>
