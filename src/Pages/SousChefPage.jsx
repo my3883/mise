@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { db, collection, addDoc } from '../firestore';
 import { auth } from '../firebase';
 import axios from 'axios';
+import Picker from 'react-mobile-picker';
 
 const arrow = (expanded) => expanded ? '▼' : '▶';
 
@@ -22,6 +23,7 @@ export default function SousChefPage() {
   const [customStatus, setCustomStatus] = useState('');
   const [expandedSection, setExpandedSection] = useState(null);
   const [pickerValues, setPickerValues] = useState({ mainIngredient:'', style:'', difficulty:'', servings:4 });
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   const toggleSection = (section) => {
     setExpandedSection(prev => prev === section ? null : section);
@@ -158,6 +160,37 @@ export default function SousChefPage() {
   const buttonStyle = { padding:'0.5rem 1rem', backgroundColor:'#3498db', color:'white', border:'none', borderRadius:'4px', cursor:'pointer', marginTop:'0.5rem' };
   const dropdownStyle = { padding:'0.25rem', fontSize:'1rem', border:'1px solid #ccc', borderRadius:'4px' };
 
+  const IOSPicker = ({ value, options, onChange }) => {
+    const optionObj = { val: options };
+    const valueObj = { val: value };
+    return (
+      <Picker
+        optionGroups={optionObj}
+        valueGroups={valueObj}
+        onChange={(name, val) => onChange(val)}
+      />
+    );
+  };
+
+  const renderPicker = (label, field) => (
+    isMobile ? (
+      <IOSPicker
+        value={pickerValues[field]}
+        options={options[field]}
+        onChange={(val) => setPickerValues(prev => ({ ...prev, [field]: val }))}
+      />
+    ) : (
+      <select
+        value={pickerValues[field]}
+        onChange={e => setPickerValues(prev => ({ ...prev, [field]: e.target.value }))}
+        style={dropdownStyle}
+      >
+        <option value="">-- {label} --</option>
+        {options[field].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+      </select>
+    )
+  );
+
   return (
     <div style={{ padding: '1rem', textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'stretch', minHeight: '100vh' }}>
       {/* Import Section */}
@@ -182,21 +215,11 @@ export default function SousChefPage() {
               Create a recipe for
               <input type="number" min="1" max="20" value={pickerValues.servings} onChange={e => setPickerValues(prev => ({ ...prev, servings: parseInt(e.target.value) }))} style={{...dropdownStyle, width:'4rem', margin:'0 0.5rem'}} />
               people that I can cook in
-              <select value={pickerValues.difficulty} onChange={e => setPickerValues(prev => ({ ...prev, difficulty: e.target.value }))} style={dropdownStyle}>
-                <option value="">-- difficulty --</option>
-                {options.difficulty.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
+              {renderPicker('difficulty', 'difficulty')}
               using
-              <select value={pickerValues.mainIngredient} onChange={e => setPickerValues(prev => ({ ...prev, mainIngredient: e.target.value }))} style={dropdownStyle}>
-                <option value="">-- ingredient --</option>
-                {options.mainIngredient.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
+              {renderPicker('ingredient', 'mainIngredient')}
               in the style of
-              <select value={pickerValues.style} onChange={e => setPickerValues(prev => ({ ...prev, style: e.target.value }))} style={dropdownStyle}>
-                <option value="">-- style --</option>
-                {options.style.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-              .
+              {renderPicker('style', 'style')}.
             </p>
             <button onClick={handleRoulette} style={buttonStyle}>Generate Recipe</button>
             {rouletteStatus && <p>{rouletteStatus}</p>}
@@ -214,9 +237,3 @@ export default function SousChefPage() {
             <button onClick={handleCustomPrompt} style={buttonStyle}>Generate Recipe</button>
             {customStatus && <p>{customStatus}</p>}
             {customRecipeObj && renderRecipeCard(customRecipeObj, addCustomRecipe,false)}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
