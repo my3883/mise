@@ -27,19 +27,18 @@ export default async (req) => {
             role: 'system',
             content: `You are Mise, a helpful Sous Chef. Respond to recipe requests and return ONLY a valid JSON object in this format:
 
-            {
-              "name": "Recipe Title",
-              "ingredients": {
-                "Protein": ["..."],
-                "Produce": ["..."],
-                "Starch": ["..."],
-                "Pantry": ["..."]
-              },
-              "instructions": "Step-by-step cooking instructions"
-            }
-            
-            Do not include any explanations, comments, or extra formatting. Only return valid JSON.`
-            
+{
+  "name": "Recipe Title",
+  "ingredients": {
+    "Protein": ["..."],
+    "Produce": ["..."],
+    "Starch": ["..."],
+    "Pantry": ["..."]
+  },
+  "instructions": "Step-by-step cooking instructions"
+}
+
+Do not include any explanations, comments, or extra formatting. Only return valid JSON.`
           },
           {
             role: 'user',
@@ -56,10 +55,16 @@ export default async (req) => {
       }
     );
 
-    return new Response(JSON.stringify({ reply: response.data.choices[0].message.content }), {
+    // Extract only the JSON block from the reply
+    const content = response.data.choices[0].message.content.trim();
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const cleanJson = jsonMatch ? jsonMatch[0] : content;
+
+    return new Response(JSON.stringify({ reply: cleanJson }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
+
   } catch (error) {
     console.error('ChatGPT Netlify error:', error.response?.data || error.message);
     return new Response(JSON.stringify({ error: 'Error talking to ChatGPT.' }), {
