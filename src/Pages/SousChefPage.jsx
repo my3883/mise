@@ -7,9 +7,8 @@ const arrow = (expanded) => expanded ? '▼' : '▶';
 
 const options = {
   mainIngredient: ['chicken','beef','pork','salmon','white fish','shrimp','tofu','mushrooms','beans','veggies'],
-  cuisine:        ['American','Chinese','Indian','Italian','Japanese','Mexican','Middle Eastern','Southeast Asian'],
-  style:          ['light','rich','spicy','bold','zesty','funky','umami-forward'],
-  chef:           ['Alice Waters','Judy Rogers','Julia Child','Kenji Alt-Lopez','Mario Batali','Michael Solomonov','Morimoto','Ottolenghi','Rick Bayless','Thomas Keller']
+  style: ['Carbone', 'Chez Panisse', 'Joes Shanghai','Ottolenghi','Nobu', 'Noma', 'Pok Pok','Taco Bell','Uchi','Zahav','Zuni Cafe'],
+  difficulty: ['under 30 minutes','1-2 hours','all day']
 };
 
 export default function SousChefPage() {
@@ -22,7 +21,7 @@ export default function SousChefPage() {
   const [rouletteStatus, setRouletteStatus] = useState('');
   const [customStatus, setCustomStatus] = useState('');
   const [expandedSection, setExpandedSection] = useState(null);
-  const [pickerValues, setPickerValues] = useState({ mainIngredient:'', cuisine:'', style:'', chef:'' });
+  const [pickerValues, setPickerValues] = useState({ mainIngredient:'', style:'', difficulty:'', servings:4 });
 
   const toggleSection = (section) => {
     setExpandedSection(prev => prev === section ? null : section);
@@ -122,17 +121,10 @@ export default function SousChefPage() {
 
   const headingStyle = { padding:'0.3rem 0', textAlign:'left', fontWeight:'normal', fontSize:'1.1rem', background:'none', border:'none', width:'100%' };
   const buttonStyle = { padding:'0.5rem 1rem', backgroundColor:'#3498db', color:'white', border:'none', borderRadius:'4px', cursor:'pointer', marginTop:'0.5rem' };
+  const dropdownStyle = { padding:'0.25rem', fontSize:'1rem', border:'1px solid #ccc', borderRadius:'4px' };
 
   return (
-    <div style={{
-      padding: '1rem',
-      textAlign: 'left',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'flex-start',
-      alignItems: 'stretch',
-      minHeight: '100vh'
-    }}>
+    <div style={{ padding: '1rem', textAlign: 'left', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'stretch', minHeight: '100vh' }}>
       {/* Import Section */}
       <div style={{ marginBottom:'1rem' }}>
         <button onClick={()=>toggleSection('import')} style={headingStyle}>{arrow(expandedSection==='import')} Import Recipe from Link</button>
@@ -142,6 +134,66 @@ export default function SousChefPage() {
             <button onClick={handleImportLink} style={buttonStyle}>Generate Recipe</button>
             {status && <p>{status}</p>}
             {parsedImport && renderRecipeCard(parsedImport, addImportRecipe,true)}
+          </div>
+        )}
+      </div>
+
+      {/* Roulette Section */}
+      <div style={{ marginBottom:'1rem' }}>
+        <button onClick={()=>toggleSection('roulette')} style={headingStyle}>{arrow(expandedSection==='roulette')} Recipe Roulette</button>
+        {expandedSection==='roulette'&&(
+          <div style={{marginTop:'0.5rem'}}>
+            <p style={{lineHeight:'2rem'}}>Create a recipe for
+              <input type="number" min={1} value={pickerValues.servings} onChange={e=>setPickerValues(prev => ({ ...prev, servings: Number(e.target.value) }))} style={{width:'4rem', margin:'0 0.5rem'}} />
+              people that I can cook in
+              <select value={pickerValues.difficulty} onChange={e => setPickerValues(prev => ({ ...prev, difficulty: e.target.value }))} style={dropdownStyle}>
+                <option value="">-- difficulty --</option>
+                {options.difficulty.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+              using
+              <select value={pickerValues.mainIngredient} onChange={e => setPickerValues(prev => ({ ...prev, mainIngredient: e.target.value }))} style={dropdownStyle}>
+                <option value="">-- ingredient --</option>
+                {options.mainIngredient.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+              in the style of
+              <select value={pickerValues.style} onChange={e => setPickerValues(prev => ({ ...prev, style: e.target.value }))} style={dropdownStyle}>
+                <option value="">-- style --</option>
+                {options.style.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>.
+            </p>
+            <button onClick={async () => {
+              const user = auth.currentUser;
+              if (!user) return setRouletteStatus('Please sign in.');
+              const { style, mainIngredient, difficulty, servings } = pickerValues;
+              if (!style || !mainIngredient || !difficulty || !servings)
+                return setRouletteStatus('Select all fields.');
+              setRouletteStatus('Generating recipe...');
+
+              const prompt = `Create a recipe for ${servings} people that I can cook in ${difficulty} using ${mainIngredient} in the style of ${style}. Return ONLY a valid JSON object in this format:\n\n{\n  "name": "string",\n  "ingredients": {\n    "Protein": [],\n    "Starch": [],\n    "Produce": [],\n    "Pantry": []\n  },\n  "instructions": "string"\n}`;
+              try {
+                const raw = await callChatGPT(prompt);
+                const parsed = JSON.stringify(raw).match(/\{[\s\S]*?\}/);
+                const result = parsed ? JSON.parse(parsed[0]) : raw;
+                setRouletteRecipe(result);
+                setRouletteStatus('Recipe generated.');
+              } catch (err) {
+                console.error('Roulette error:', err);
+                setRouletteStatus(err.message);
+              }
+            }} style={buttonStyle}>Generate Recipe</button>
+            {rouletteStatus && <p>{rouletteStatus}</p>}
+            {rouletteRecipe && renderRecipeCard(rouletteRecipe, async () => {
+              const user = auth.currentUser;
+              if (!user) return setRouletteStatus('Please sign in.');
+              try {
+                await addDoc(collection(db, 'recipes'), { ...rouletteRecipe, userId: user.uid });
+                setRouletteStatus('Recipe added!');
+                setRouletteRecipe(null);
+              } catch (err) {
+                console.error('Add recipe error:', err);
+                setRouletteStatus(`Error adding: ${err.message}`);
+              }
+            }, false)}
           </div>
         )}
       </div>
