@@ -33,7 +33,7 @@ export default function SousChefPage() {
     try {
       return JSON.parse(text);
     } catch (e) {
-      throw new Error(Invalid JSON response from ChatGPT: ${text});
+      throw new Error('Invalid JSON response from ChatGPT: ${text}');
     }
   };
 
